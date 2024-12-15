@@ -18,7 +18,10 @@ class VAE(pl.LightningModule):
         assert mode in ["AE", "VAE"], "mode should be either AE or VAE"
 
         self.mode = mode
-        self.forward = self._forward_ae if mode == "AE" else self._forward_vae
+        if mode == "VAE":
+            self.to_vae()
+        else:
+            self.to_ae()
 
         encoder_modules = []
         for in_size, out_size in zip(layers_sizes[:-1], layers_sizes[1:]):
