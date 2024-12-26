@@ -1,66 +1,51 @@
-from typing import Literal, Type
+from __future__ import annotations
 
-import pytorch_lightning as pl
+from copy import deepcopy
+from typing import Type
+
 import torch
+import torch.nn.functional as F
 from torch import nn
 
+from .ae import AE
 
-class VAE(pl.LightningModule):
+
+class VAE(AE):
 
     def __init__(
         self,
         layers_sizes: list[int],
-        mode: Literal["AE", "VAE"],
         activation_function_cls: Type[nn.Module] = nn.ReLU,
     ):
-        super().__init__()
-        assert len(layers_sizes) >= 2, "layers_sizes should have at least two elements"
-        assert mode in ["AE", "VAE"], "mode should be either AE or VAE"
-
-        self.mode = mode
-        if mode == "VAE":
-            self.to_vae()
-        else:
-            self.to_ae()
-
-        encoder_modules = []
-        for in_size, out_size in zip(layers_sizes[:-1], layers_sizes[1:]):
-            encoder_modules.append(nn.Linear(in_size, out_size))
-            encoder_modules.append(activation_function_cls())
-        self.encoder = nn.Sequential(*encoder_modules)
-
+        super().__init__(layers_sizes, activation_function_cls)
         self.mu_encoder = nn.Linear(layers_sizes[-1], layers_sizes[-1])
         self.logvar_encoder = nn.Linear(layers_sizes[-1], layers_sizes[-1])
 
-        reversed_layers_sizes = list(reversed(layers_sizes))
-        decoder_modules = []
-        for in_size, out_size in zip(reversed_layers_sizes[:-1], reversed_layers_sizes[1:]):
-            decoder_modules.append(nn.Linear(in_size, out_size))
-            decoder_modules.append(activation_function_cls())
-        decoder_modules.pop(-1)
-        self.decoder = nn.Sequential(*decoder_modules)
-
-    def _forward_ae(self, X: torch.Tensor) -> torch.Tensor:
-        output = self.encoder(X)
-        output = self.decoder(output)
+    def forward(self, X: torch.Tensor) -> torch.Tensor:
+        output = self.encode(X)
+        output = self.reparametrize(self.mu_encoder(output), self.logvar_encoder(output))
+        output = self.decode(output)
         return output
 
-    def to_ae(self):
-        self.mode = "AE"
-        self.forward = self._forward_ae
+    def loss_function(self, batch: list[torch.Tensor, torch.Tensor]) -> torch.Tensor:
+        X, _ = batch
+        encoded = self.encode(X)
+        mu = self.mu_encoder(encoded)
+        logvar = self.logvar_encoder(encoded)
+        X_hat = self.decode(self.reparametrize(mu, logvar))
+        recon_loss = F.mse_loss(X_hat, X, reduction="mean")
+        kl_div_reg = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp()) / X.size(0)
+        return recon_loss + kl_div_reg
 
-    def _forward_vae(self, X: torch.Tensor) -> torch.Tensor:
-        output = self.encoder(X)
-        output = self._reparametrize(self.mu_encoder(output), self.logvar_encoder(output))
-        output = self.decoder(output)
-        return output
-
-    def to_vae(self):
-        self.mode = "VAE"
-        self.forward = self._forward_vae
-
-    def _reparametrize(self, mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
+    def reparametrize(self, mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
         std = torch.exp(0.5 * logvar)
         eps = torch.randn_like(std)
         z = mu + eps * std
         return z
+
+    @staticmethod
+    def from_ae(ae: AE) -> VAE:
+        vae = VAE(ae.layers_sizes, ae.activation_function_cls)
+        vae.encoder = deepcopy(ae.encoder)
+        vae.decoder = deepcopy(ae.decoder)
+        return vae
