@@ -26,10 +26,26 @@ class VADE(VAE):
         super().__init__(
             layers_sizes, learning_rate, weight_decay, activation_function_cls
         )
+        self.n_classes = n_classes
         self._pi = Parameter(torch.zeros(n_classes))
         self.mu = Parameter(torch.randn(n_classes, layers_sizes[-1]))
         self.logvar = Parameter(torch.randn(n_classes, layers_sizes[-1]))
-        self.decoder = nn.Sequential(self.decoder, nn.Sigmoid())
+
+    def initialize_decoder(
+        self,
+        layers_sizes: list[int],
+        activation_function_cls: Type[nn.Module] = nn.ReLU,
+    ) -> None:
+        reversed_layers_sizes = list(reversed(layers_sizes))
+        decoder_modules = []
+        for in_size, out_size in zip(
+            reversed_layers_sizes[:-1], reversed_layers_sizes[1:]
+        ):
+            decoder_modules.append(nn.Linear(in_size, out_size))
+            decoder_modules.append(activation_function_cls())
+        decoder_modules.pop(-1)
+        decoder_modules.append(nn.Sigmoid())
+        self.decoder = nn.Sequential(*decoder_modules)
 
     @property
     def weights(self):
@@ -43,7 +59,6 @@ class VADE(VAE):
         mu = self.mu_encoder(encoded)
         logvar = self.logvar_encoder(encoded)
         X_hat = self.decode(self.reparametrize(mu, logvar)).float()
-
         z = self.reparametrize(mu, logvar).unsqueeze(1)
         h = z - self.mu
         h = torch.exp(-0.5 * torch.sum((h * h / self.logvar.exp()), dim=2))
@@ -67,7 +82,16 @@ class VADE(VAE):
 
     @staticmethod
     def from_ae(ae: AE, n_classes: int) -> VADE:
-        vade = VADE(ae.layers_sizes, n_classes, ae.activation_function_cls)
+        ae = deepcopy(ae)
+        vade = VADE(
+            ae.layers_sizes,
+            n_classes,
+            ae.learning_rate,
+            ae.weight_decay,
+            ae.activation_function_cls,
+        )
         vade.encoder = deepcopy(ae.encoder)
-        vade.decoder = nn.Sequential(ae.decoder, nn.Sigmoid())
-        return vade
+        vade.decoder = deepcopy(ae.decoder)
+        if not isinstance(vade.decoder[-1], nn.Sigmoid):
+            vade.decoder.append(nn.Sigmoid())
+        return vade.double()

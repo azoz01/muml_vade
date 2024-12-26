@@ -2,6 +2,6 @@ hidden_layers_sizes: [100, 200, 300]
 learning_rate: 1e-4
 weight_decay: 1e-4
 activation_function: ReLU
-batch_size: 32
-n_epochs: 2
-training: BasicTraining
+batch_size: 16
+n_epochs: 1
+training: TrainingWithPretrain

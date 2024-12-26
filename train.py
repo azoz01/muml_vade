@@ -11,7 +11,6 @@ from vade.args import parse_args
 from vade.config import Config
 from vade.data import DATASETS
 from vade.model_factory import get_model
-from vade.train import BasicTraining
 
 warnings.simplefilter("ignore")
 torch.set_float32_matmul_precision("medium")
@@ -56,8 +55,11 @@ def main() -> None:
     logger.debug(f"Model: {model}")
 
     logger.info("Training the model")
-    training = BasicTraining(
-        config.n_epochs, RESULTS_PATH / args.data / args.model, test=args.test
+
+    training = config.training(
+        config.n_epochs,
+        RESULTS_PATH / args.data / args.model / config.training.__name__,
+        test=args.test,
     )
     training.train_model(model, train_dataloader, test_dataloader)
 

@@ -4,4 +4,4 @@ weight_decay: 1e-4
 activation_function: ReLU
 batch_size: 32
 n_epochs: 2
-training: BasicTraining
+training: TrainingWithPretrain

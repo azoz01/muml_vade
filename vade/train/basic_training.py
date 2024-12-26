@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from loguru import logger
 from torch.utils.data import DataLoader
 
 from ..model import Model
@@ -17,4 +18,12 @@ class BasicTraining(Training):
         train_dataloader: DataLoader,
         test_dataloader: DataLoader,
     ) -> Model:
-        return self.trainer.fit(model, train_dataloader, test_dataloader)
+        self.trainer.fit(model, train_dataloader, test_dataloader)
+        if Path(self.trainer.checkpoint_callback.best_model_path).is_file():
+            logger.debug(
+                f"Loading best checkpoint from {self.trainer.checkpoint_callback.best_model_path}"
+            )
+            model = type(model).load_from_checkpoint(
+                self.trainer.checkpoint_callback.best_model_path
+            )
+        return model

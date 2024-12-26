@@ -57,7 +57,13 @@ class VAE(AE):
 
     @staticmethod
     def from_ae(ae: AE) -> VAE:
-        vae = VAE(ae.layers_sizes, ae.activation_function_cls)
+        ae = deepcopy(ae)
+        vae = VAE(
+            ae.layers_sizes,
+            ae.learning_rate,
+            ae.weight_decay,
+            ae.activation_function_cls,
+        )
         vae.encoder = deepcopy(ae.encoder)
         vae.decoder = deepcopy(ae.decoder)
-        return vae
+        return vae.double()

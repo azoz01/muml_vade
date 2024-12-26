@@ -29,7 +29,7 @@ class Training(ABC):
             mode="min",
         )
         model_checkpoint = ModelCheckpoint(
-            filename="best_model-{epoch}-{val_loss:.2f}-{train_loss:.2f}",
+            filename="best_model-{epoch}-{val_loss:.4f}-{train_loss:.4f}",
             monitor="val_loss",
             mode="min",
             save_weights_only=True,
