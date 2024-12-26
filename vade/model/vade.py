@@ -31,12 +31,14 @@ class VADE(VAE):
     def weights(self):
         return torch.softmax(self._pi, dim=0)
 
-    def loss_function(self, batch: list[torch.Tensor, torch.Tensor]) -> torch.Tensor:
+    def loss_function(
+        self, batch: list[torch.Tensor, torch.Tensor]
+    ) -> torch.Tensor:
         X, _ = batch
         encoded = self.encode(X)
         mu = self.mu_encoder(encoded)
         logvar = self.logvar_encoder(encoded)
-        X_hat = self.decode(self.reparametrize(mu, logvar))
+        X_hat = self.decode(self.reparametrize(mu, logvar)).float()
 
         z = self.reparametrize(mu, logvar).unsqueeze(1)
         h = z - self.mu
