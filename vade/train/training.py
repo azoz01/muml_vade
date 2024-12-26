@@ -39,7 +39,7 @@ class Training(ABC):
             max_epochs=max_epochs,
             check_val_every_n_epoch=1,
             callbacks=[early_stopping, model_checkpoint],
-            fast_dev_run=test,
+            fast_dev_run=10 if test else False,
             log_every_n_steps=10,
             default_root_dir=logs_path,
         )
