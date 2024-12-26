@@ -6,6 +6,7 @@ from vade.device import DEVICE
 from vade.model import AE, VADE, VAE
 
 model = VADE([784, 256, 128], 10).to(DEVICE)
+model = model.double()
 dataset = DATASETS["MNIST"]
 train_loader = DataLoader(dataset["train"], batch_size=32)
 test_loader = DataLoader(dataset["test"], batch_size=32)
