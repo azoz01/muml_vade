@@ -11,6 +11,8 @@ class AE(pl.LightningModule):
     def __init__(
         self,
         layers_sizes: list[int],
+        learning_rate: float,
+        weight_decay: float,
         activation_function_cls: Type[nn.Module] = nn.ReLU,
     ):
         super().__init__()
@@ -20,6 +22,8 @@ class AE(pl.LightningModule):
 
         self.layers_sizes = layers_sizes
         self.activation_function_cls = activation_function_cls
+        self.learning_rate = learning_rate
+        self.weight_decay = weight_decay
 
         encoder_modules = []
         for in_size, out_size in zip(layers_sizes[:-1], layers_sizes[1:]):
@@ -36,6 +40,7 @@ class AE(pl.LightningModule):
             decoder_modules.append(activation_function_cls())
         decoder_modules.pop(-1)
         self.decoder = nn.Sequential(*decoder_modules)
+        self.save_hyperparameters()
 
     def encode(self, X: torch.Tensor) -> torch.Tensor:
         X = X.double()
@@ -51,21 +56,25 @@ class AE(pl.LightningModule):
 
     def training_step(self, batch: list[torch.Tensor, torch.Tensor], _):
         loss = self.loss_function(batch)
-        self.log("train_loss", loss)
+        self.log("train_loss", loss, prog_bar=True)
         return loss
 
     def validation_step(self, batch: list[torch.Tensor, torch.Tensor], _):
         loss = self.loss_function(batch)
-        self.log("val_loss", loss)
+        self.log("val_loss", loss, prog_bar=True)
         return loss
 
     def loss_function(
         self, batch: list[torch.Tensor, torch.Tensor]
     ) -> torch.Tensor:
         X, _ = batch
-        X_hat = self.forward(X)
+        X_hat = self.forward(X).float()
         loss = F.mse_loss(X_hat, X, reduction="mean")
         return loss
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=1e-4)
+        return torch.optim.Adam(
+            self.parameters(),
+            lr=self.learning_rate,
+            weight_decay=self.weight_decay,
+        )

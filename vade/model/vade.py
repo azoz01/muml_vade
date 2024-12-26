@@ -19,9 +19,13 @@ class VADE(VAE):
         self,
         layers_sizes: list[int],
         n_classes: int,
+        learning_rate: float,
+        weight_decay: float,
         activation_function_cls: Type[nn.Module] = nn.ReLU,
     ):
-        super().__init__(layers_sizes, activation_function_cls)
+        super().__init__(
+            layers_sizes, learning_rate, weight_decay, activation_function_cls
+        )
         self._pi = Parameter(torch.zeros(n_classes))
         self.mu = Parameter(torch.randn(n_classes, layers_sizes[-1]))
         self.logvar = Parameter(torch.randn(n_classes, layers_sizes[-1]))
