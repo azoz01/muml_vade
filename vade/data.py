@@ -1,13 +1,18 @@
 import pandas as pd
-from torch import Tensor, flatten
+from torch import Tensor, clamp, flatten
 from torch.utils.data import TensorDataset
 from torchvision import datasets
-from torchvision.transforms import Compose, Lambda, Normalize, ToTensor
+from torchvision.transforms import Compose, Lambda, ToTensor
 
 from .device import DEVICE
 
 MNIST_TRANSFORMS = Compose(
-    [ToTensor(), Normalize([0.13], [0.3]), Lambda(flatten), Lambda(lambda x: x.to(DEVICE))]
+    [
+        ToTensor(),
+        Lambda(flatten),
+        Lambda(lambda t: clamp(t, 1e-2, 1 - 1e-2)),
+        Lambda(lambda x: x.to(DEVICE)),
+    ]
 )
 
 DATASETS = {
