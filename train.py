@@ -1,3 +1,4 @@
+import os
 import warnings
 from pathlib import Path
 
@@ -16,6 +17,11 @@ warnings.simplefilter("ignore")
 torch.set_float32_matmul_precision("medium")
 
 RESULTS_PATH = Path("results")
+RESULTS_PATH = (
+    RESULTS_PATH / os.environ.get("EXPERIMENT_SUBPATH", "")
+    if "EXPERIMENT_SUBPATH" in os.environ
+    else RESULTS_PATH
+)
 
 
 def main() -> None:

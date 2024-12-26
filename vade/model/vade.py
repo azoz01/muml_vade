@@ -61,12 +61,16 @@ class VADE(VAE):
         X_hat = self.decode(self.reparametrize(mu, logvar)).float()
         z = self.reparametrize(mu, logvar).unsqueeze(1)
         h = z - self.mu
-        h = torch.exp(-0.5 * torch.sum((h * h / self.logvar.exp()), dim=2))
+        h = torch.exp(
+            -0.5 * torch.sum((h * h / self.logvar.exp()), dim=2)
+            - torch.sum(0.5 * self.logvar, dim=1)
+        )
 
-        h = h / torch.sum(0.5 * self.logvar, dim=1).exp()
         p_z_given_c = h / (2 * math.pi)
         p_z_c = p_z_given_c * self.weights
-        gamma = p_z_c / torch.sum(p_z_c, dim=1, keepdim=True)
+        gamma = p_z_c / (
+            torch.sum(p_z_c, dim=1, keepdim=True) + 1e-300
+        )  # WARNING: it can affect results
 
         h = logvar.exp().unsqueeze(1) + (mu.unsqueeze(1) - self.mu).pow(2)
         h = torch.sum(self.logvar + h / self.logvar.exp(), dim=2)
