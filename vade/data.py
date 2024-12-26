@@ -13,12 +13,21 @@ MNIST_TRANSFORMS = Compose(
     ]
 )
 
+
+def scale_df(df: pd.DataFrame) -> pd.DataFrame:
+    min = df.min()
+    max = df.max()
+    return (df - min) / (max - min)
+
+
 DATASETS = {
     "HAR": {
         "train": TensorDataset(
             Tensor(
-                pd.read_csv(
-                    "data/har/X_train.csv", sep=r"\s+", header=None
+                scale_df(
+                    pd.read_csv(
+                        "data/har/X_train.csv", sep=r"\s+", header=None
+                    )
                 ).values
             ).to("cpu"),
             Tensor(
@@ -29,8 +38,8 @@ DATASETS = {
         ),
         "test": TensorDataset(
             Tensor(
-                pd.read_csv(
-                    "data/har/X_test.csv", sep=r"\s+", header=None
+                scale_df(
+                    pd.read_csv("data/har/X_test.csv", sep=r"\s+", header=None)
                 ).values
             ).to("cpu"),
             Tensor(
