@@ -10,13 +10,13 @@ set -ex
 
 export EXPERIMENT_SUBPATH=$(date +"%Y-%m-%d__%H-%M-%S")
 
-python train.py -m AE -d MNIST -c config/ae_mnist.yaml $test_flag
-python train.py -m VAE -d MNIST -c config/vae_mnist.yaml $test_flag
+# python train.py -m AE -d MNIST -c config/ae_mnist.yaml $test_flag
+# python train.py -m VAE -d MNIST -c config/vae_mnist.yaml $test_flag
 python train.py -m VADE -d MNIST -c config/vade_mnist.yaml $test_flag
-python train.py -m VADE -d MNIST -c config/vade_mnist_pretrain.yaml $test_flag
-python train.py -m AE -d HAR -c config/ae_har.yaml $test_flag
-python train.py -m VAE -d HAR -c config/vae_har.yaml $test_flag
-python train.py -m VADE -d HAR -c config/vade_har.yaml $test_flag
-python train.py -m VADE -d HAR -c config/vade_har_pretrain.yaml $test_flag
+# python train.py -m VADE -d MNIST -c config/vade_mnist_pretrain.yaml $test_flag
+# python train.py -m AE -d HAR -c config/ae_har.yaml $test_flag
+# python train.py -m VAE -d HAR -c config/vae_har.yaml $test_flag
+# python train.py -m VADE -d HAR -c config/vade_har.yaml $test_flag
+# python train.py -m VADE -d HAR -c config/vade_har_pretrain.yaml $test_flag
 
 echo "All trainings passed"

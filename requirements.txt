@@ -8,3 +8,4 @@ lightning[extra]
 loguru==0.7.3
 pydantic==2.10.4
 tensorboard==2.18.0
+scikit-learn==1.6.0
