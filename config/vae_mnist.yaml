@@ -1,7 +1,7 @@
-hidden_layers_sizes: [512, 128, 32]
-learning_rate: 1e-4
-weight_decay: 1e-4
-activation_function: ReLU
-batch_size: 32
+hidden_layers_sizes: [512, 64] 
+learning_rate: 0.001 
+weight_decay: 0
+activation_function: LeakyReLU 
+batch_size: 32 
 n_epochs: 100
 training: BasicTraining

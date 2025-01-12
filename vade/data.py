@@ -45,7 +45,7 @@ DATASETS = {
             Tensor(
                 pd.read_csv(
                     "data/har/y_test.csv", sep=r"\s+", header=None
-                ).values
+                ).values.flatten()
             ).to("cpu"),
         ),
     },

@@ -84,6 +84,26 @@ class VADE(VAE):
         loss = loss / X.shape[0]
         return loss
 
+    def classify(self, X: torch.Tensor, n_samples=8) -> torch.Tensor:
+        with torch.no_grad():
+            encoded = self.encode(X)
+            mu = self.mu_encoder(encoded)
+            logvar = self.logvar_encoder(encoded)
+            z = torch.stack(
+                [self.reparametrize(mu, logvar) for _ in range(n_samples)],
+                dim=1,
+            )
+            z = z.unsqueeze(2)
+            h = z - self.mu
+            h = torch.exp(-0.5 * torch.sum(h * h / self.logvar.exp(), dim=3))
+            h = h / torch.sum(0.5 * self.logvar, dim=1).exp()
+            p_z_given_c = h / (2 * math.pi)
+            p_z_c = p_z_given_c * self.weights
+            y = p_z_c / torch.sum(p_z_c, dim=2, keepdim=True)
+            y = torch.sum(y, dim=1)
+            pred = torch.argmax(y, dim=1)
+        return pred
+
     @staticmethod
     def from_ae(ae: AE, n_classes: int) -> VADE:
         ae = deepcopy(ae)
