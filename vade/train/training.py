@@ -24,7 +24,7 @@ class Training(ABC):
     ) -> pl.Trainer:
         early_stopping = EarlyStopping(
             monitor="val_loss",
-            patience=3,
+            patience=25,
             verbose=False,
             mode="min",
         )

@@ -1,4 +1,4 @@
-hidden_layers_sizes: [1024, 1024, 128] 
+hidden_layers_sizes: [1024, 1024, 256, 64, 10] 
 learning_rate: 0.001 
 weight_decay: 0.0005 
 activation_function: LeakyReLU 
