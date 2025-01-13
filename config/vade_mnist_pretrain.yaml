@@ -3,5 +3,5 @@ learning_rate: 0.001
 weight_decay: 0.0005 
 activation_function: LeakyReLU 
 batch_size: 128 
-n_epochs: 200
+n_epochs: 1
 training: TrainingWithPretrain
